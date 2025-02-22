@@ -1,66 +1,249 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Laravel Practice Guide
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+## Introduction
+Hi, I'm **Arif**, and I am practicing Laravel step by step to improve my skills. This guide documents my learning process, covering migrations, models, controllers, seeders, factories, and Faker.
 
-## About Laravel
+## Table of Contents
+- [Migration](#migration)
+- [Model](#model)
+- [Controller](#controller)
+- [View](#view)
+- [API Routes](#api-routes)
+- [Seeder](#seeder)
+- [Factory & Faker](#factory--faker)
+- [Commands](#commands)
+- [Running the Project](#running-the-project)
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+---
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Migration
+A migration is used to create database tables. Run the following command to create a migration:
+```bash
+php artisan make:migration create_products_table
+```
+Then, define the table structure inside the generated migration file in `database/migrations/`.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+Example:
+```php
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
 
-## Learning Laravel
+return new class extends Migration {
+    public function up(): void
+    {
+        Schema::create('products', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+            $table->text('description')->nullable();
+            $table->decimal('price', 10, 2);
+            $table->integer('stock')->default(0);
+            $table->timestamps();
+        });
+    }
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+    public function down(): void
+    {
+        Schema::dropIfExists('products');
+    }
+};
+```
+Run the migration:
+```bash
+php artisan migrate
+```
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+---
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+## Model
+Models interact with the database. Create a model with:
+```bash
+php artisan make:model Product
+```
+Modify the model (`app/Models/Product.php`):
+```php
+namespace App\Models;
 
-## Laravel Sponsors
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+class Product extends Model
+{
+    use HasFactory;
+    protected $fillable = ['name', 'description', 'price', 'stock'];
+}
+```
 
-### Premium Partners
+---
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
+## Controller
+Controllers handle business logic. Create one using:
+```bash
+php artisan make:controller ProductController --resource
+```
+Modify the controller (`app/Http/Controllers/ProductController.php`):
+```php
+namespace App\Http\Controllers;
 
-## Contributing
+use App\Models\Product;
+use Illuminate\Http\Request;
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+class ProductController extends Controller
+{
+    public function index()
+    {
+        return response()->json(Product::all());
+    }
 
-## Code of Conduct
+    public function store(Request $request)
+    {
+        $product = Product::create($request->all());
+        return response()->json($product, 201);
+    }
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+    public function show(Product $product)
+    {
+        return response()->json($product);
+    }
 
-## Security Vulnerabilities
+    public function update(Request $request, Product $product)
+    {
+        $product->update($request->all());
+        return response()->json($product);
+    }
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+    public function destroy(Product $product)
+    {
+        $product->delete();
+        return response()->json(null, 204);
+    }
+}
+```
 
-## License
+---
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+## View
+Create views for **create** and **edit** inside `resources/views/products/`.
+
+### `create.blade.php`
+```html
+<form action="{{ route('products.store') }}" method="POST">
+    @csrf
+    <input type="text" name="name" placeholder="Product Name">
+    <input type="text" name="description" placeholder="Description">
+    <input type="number" name="price" placeholder="Price">
+    <input type="number" name="stock" placeholder="Stock">
+    <button type="submit">Create</button>
+</form>
+```
+
+### `edit.blade.php`
+```html
+<form action="{{ route('products.update', $product->id) }}" method="POST">
+    @csrf
+    @method('PUT')
+    <input type="text" name="name" value="{{ $product->name }}">
+    <input type="text" name="description" value="{{ $product->description }}">
+    <input type="number" name="price" value="{{ $product->price }}">
+    <input type="number" name="stock" value="{{ $product->stock }}">
+    <button type="submit">Update</button>
+</form>
+```
+
+---
+
+## API Routes
+Define API routes in `routes/api.php`:
+```php
+use App\Http\Controllers\ProductController;
+Route::resource('products', ProductController::class);
+```
+
+---
+
+## Seeder
+Seeders populate the database with test data.
+```bash
+php artisan make:seeder ProductSeeder
+```
+Modify `database/seeders/ProductSeeder.php`:
+```php
+use Illuminate\Database\Seeder;
+use App\Models\Product;
+
+class ProductSeeder extends Seeder
+{
+    public function run(): void
+    {
+        Product::factory(20)->create();
+    }
+}
+```
+Run the seeder:
+```bash
+php artisan db:seed --class=ProductSeeder
+```
+
+---
+
+## Factory & Faker
+Factories help generate fake data.
+```bash
+php artisan make:factory ProductFactory --model=Product
+```
+Modify `database/factories/ProductFactory.php`:
+```php
+namespace Database\Factories;
+
+use Illuminate\Database\Eloquent\Factories\Factory;
+
+class ProductFactory extends Factory
+{
+    public function definition(): array
+    {
+        return [
+            'name' => $this->faker->word(),
+            'description' => $this->faker->sentence(),
+            'price' => $this->faker->randomFloat(2, 50, 2000),
+            'stock' => $this->faker->numberBetween(1, 100),
+        ];
+    }
+}
+```
+Generate fake data:
+```bash
+php artisan tinker
+>>> \App\Models\Product::factory()->count(10)->create();
+```
+
+---
+
+## Commands
+| Command | Description |
+|---------|-------------|
+| `php artisan make:migration create_products_table` | Create migration |
+| `php artisan make:controller ProductController` | Create controller |
+| `php artisan make:model Product` | Create model |
+| `php artisan make:model Product -mcr` | Create model with migration, controller, and resource methods |
+| `php artisan make:seeder ProductSeeder` | Create seeder |
+| `php artisan migrate:fresh --seed` | Reset database and seed |
+| `php artisan make:factory ProductFactory --model=Product` | Create factory |
+
+---
+
+## Running the Project
+1. **Install dependencies:**
+   ```bash
+   composer install
+   ```
+2. **Run migrations and seed data:**
+   ```bash
+   php artisan migrate:fresh --seed
+   ```
+3. **Start Laravel server:**
+   ```bash
+   php artisan serve
+   ```
+
+Now, visit `http://127.0.0.1:8000/` and explore your Laravel project! 🚀
+

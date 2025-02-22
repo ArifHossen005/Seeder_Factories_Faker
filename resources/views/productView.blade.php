@@ -62,6 +62,7 @@
                 @endforeach
             </tbody>
         </table>
+        <a href="{{ route(name: 'product.create') }}" class="btn btn-primary">Go Back Form </a> 
     </div>
 
 </body>

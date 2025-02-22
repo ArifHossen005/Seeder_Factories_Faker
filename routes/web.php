@@ -2,7 +2,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProductController;
 
-Route::get('/', [ProductController::class, 'create']);
+Route::get('/', [ProductController::class, 'create'])->name('product.create');
 Route::post('/store', [ProductController::class, 'store'])->name('product.store');
 Route::get('/products', [ProductController::class, 'index'])->name('all.products'); // New route
 Route::get('/edit/{id}', [ProductController::class, 'edit'])->name('product.edit'); // New route
