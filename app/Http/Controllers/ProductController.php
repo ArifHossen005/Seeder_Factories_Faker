@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
@@ -30,9 +31,10 @@ class ProductController extends Controller
 
     public function index()
     {
-        $products = Product::all(); // Retrieve all products
+        $products = Product::paginate(10); // Retrieve products with pagination
         return view('productView', compact('products'));
     }
+
 
     public function edit($id)
     {
